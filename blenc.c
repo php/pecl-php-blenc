@@ -174,7 +174,7 @@ PHP_FUNCTION(blenc_encrypt) {
 		dup_key = TRUE;
 	}
 
-	php_blenc_make_md5((char *)&header.md5, data, data_len);
+	php_blenc_make_md5((char *)&header.md5, data, data_len TSRMLS_CC);
 	
 	retval = php_blenc_encode(data, key, data_len, &output_len TSRMLS_CC);
 
@@ -497,7 +497,7 @@ zend_op_array *blenc_compile(zend_file_handle *file_handle, int type TSRMLS_DC) 
 			BL_G(decoded) = php_blenc_decode(encoded, *key, script_len - sizeof(blenc_header), &BL_G(decoded_len) TSRMLS_CC);
 			
 			md5 = emalloc(33);
-			php_blenc_make_md5(md5, BL_G(decoded), BL_G(decoded_len));
+			php_blenc_make_md5(md5, BL_G(decoded), BL_G(decoded_len) TSRMLS_CC);
 
 			if(!strncmp(md5, header->md5, 32)) {
 				validated = TRUE;
