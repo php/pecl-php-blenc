@@ -4,9 +4,5 @@
 ARG_ENABLE("blenc", "enable blenc support", "no");
 
 if (PHP_BLENC != "no") {
-	if (!PHP_BLENC_SHARED) {
-		ERROR("blenc can only be built as a shared extension");
-	}
-
 	EXTENSION("blenc", "blenc.c bf_algo.c");
 }
