@@ -1,0 +1,13 @@
+// $Id$
+// vim:ft=javascript
+
+// If your extension references something external, use ARG_WITH
+// ARG_WITH("blenc", "for blenc support", "no");
+
+// Otherwise, use ARG_ENABLE
+// ARG_ENABLE("blenc", "enable blenc support", "no");
+
+if (PHP_BLENC != "no") {
+	EXTENSION("blenc", "blenc.c bf_algo.c");
+}
+

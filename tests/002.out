@@ -1,0 +1,3 @@
+Fatal error: Validation of script 'ext/blenc/tests/output.phpe' failed, cannot execute. in /home/john/working/php-src/ext/blenc/tests/002.php on line 6
+/home/john/working/php-src/main/streams/streams.c(374) : Stream of type 'STDIO' 0x401f9dc4 (path:ext/blenc/tests/output.phpe) was not closed
+/home/john/working/php-src/Zend/zend_hash.c(1276) : ht=0x824d2fc is already destroyed
