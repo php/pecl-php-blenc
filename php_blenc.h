@@ -21,7 +21,7 @@
 #ifndef PHP_BLENC_H
 #define PHP_BLENC_H
 
-#define BLENC_VERSION "1.0-alpha"
+#define PHP_BLENC_VERSION "1.0.0-dev"
 #define BLENC_IDENT "BLENC"
 #define BLENC_BUFSIZE 4092
 

@@ -62,7 +62,7 @@ zend_module_entry blenc_module_entry = {
 	NULL, 
 	PHP_MINFO(blenc),
 #if ZEND_MODULE_API_NO >= 20010901
-	BLENC_VERSION, /* Replace with version number for your extension */
+	PHP_BLENC_VERSION,
 #endif
 	STANDARD_MODULE_PROPERTIES
 };
@@ -103,7 +103,7 @@ PHP_MINIT_FUNCTION(blenc)
 	zend_compile_file_old = zend_compile_file;
 	zend_compile_file = blenc_compile;
 	
-	REGISTER_STRING_CONSTANT("BLENC_EXT_VERSION", BLENC_VERSION, CONST_CS | CONST_PERSISTENT);
+	REGISTER_STRING_CONSTANT("BLENC_EXT_VERSION", PHP_BLENC_VERSION, CONST_CS | CONST_PERSISTENT);
 	
 	return SUCCESS;
 }
@@ -146,6 +146,7 @@ PHP_MINFO_FUNCTION(blenc)
 {
 	php_info_print_table_start();
 	php_info_print_table_header(2, "blenc support", "enabled");
+	php_info_print_table_row(2, "version", PHP_BLENC_VERSION);
 	php_info_print_table_end();
 
 	DISPLAY_INI_ENTRIES();
@@ -160,7 +161,7 @@ PHP_FUNCTION(blenc_encrypt) {
 	php_stream *stream;
 	zend_bool dup_key = FALSE;
 	
-	blenc_header header = {BLENC_IDENT, BLENC_VERSION};
+	blenc_header header = {BLENC_IDENT, PHP_BLENC_VERSION};
 	
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss|s", &data, &data_len,
  				&output_file, &output_file_len,
