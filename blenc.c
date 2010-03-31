@@ -42,7 +42,7 @@ typedef struct _blenc_header {
 HashTable *php_bl_keys;
 
 /* {{{ blenc_functions[] */
-function_entry blenc_functions[] = {
+zend_function_entry blenc_functions[] = {
 	PHP_FE(blenc_encrypt,	NULL)
 	{NULL, NULL, NULL}	
 };
