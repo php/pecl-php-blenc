@@ -13,6 +13,7 @@
   | license@php.net so we can mail you a copy immediately.               |
   +----------------------------------------------------------------------+
   | Author: John Coggeshall <john@php.net>                               |
+  |         Giuseppe Chiesa <mail@giuseppechiesa.it>	 				 |
   +----------------------------------------------------------------------+
 */
 
@@ -27,6 +28,7 @@
 #include "ext/standard/info.h"
 #include "ext/standard/md5.h"
 #include "php_blenc.h"
+#include "blenc_protect.h"
 #include "bf_algo.h"
 
 ZEND_DECLARE_MODULE_GLOBALS(blenc)
@@ -62,7 +64,7 @@ zend_module_entry blenc_module_entry = {
 	NULL, 
 	PHP_MINFO(blenc),
 #if ZEND_MODULE_API_NO >= 20010901
-	PHP_BLENC_VERSION,
+	BLENC_VERSION, /* Replace with version number for your extension */
 #endif
 	STANDARD_MODULE_PROPERTIES
 };
@@ -94,17 +96,75 @@ static void php_blenc_init_globals(zend_blenc_globals *blenc_globals)
  */
 PHP_MINIT_FUNCTION(blenc)
 {
+	time_t now;
+	struct tm *today;
+	char today_char[16];
+	char expire_char[] = BLENC_PROTECT_EXPIRE;
+	char buff[10];
+	int k = 0, j = 0, i = 0;
+
 	ZEND_INIT_MODULE_GLOBALS(blenc, php_blenc_init_globals, NULL);
 	REGISTER_INI_ENTRIES();
 	
 	php_bl_keys = pemalloc(sizeof(HashTable), TRUE);
 	zend_hash_init(php_bl_keys, 0, NULL, _php_blenc_pefree_wrapper, TRUE);
-	
+
 	zend_compile_file_old = zend_compile_file;
 	zend_compile_file = blenc_compile;
 	
-	REGISTER_STRING_CONSTANT("BLENC_EXT_VERSION", PHP_BLENC_VERSION, CONST_CS | CONST_PERSISTENT);
-	
+	REGISTER_STRING_CONSTANT("BLENC_EXT_VERSION", BLENC_VERSION, CONST_CS | CONST_PERSISTENT);
+
+	/*
+	 * check expire extension
+	 */
+	memset(today_char, '\0', sizeof(today_char));
+	now = time(NULL);
+	today = localtime(&now);
+	strftime(today_char, 16, "%Y%m%d", today);
+
+#ifndef BLENC_PROTECT_COMP3
+	BL_G(expire_date) = pemalloc(sizeof(expire_char), TRUE);
+	strcpy(BL_G(expire_date), expire_char);
+
+	strncpy(buff, &expire_char[6], 4);
+	strncpy(&buff[4], &expire_char[3], 2);
+	strncpy(&buff[6], &expire_char[0], 2);
+	buff[8] = '\0';
+#else
+	j = 0;
+	for(k=0; k<4; k++) {
+
+		if(expire_char[k] == 0) {
+
+			buff[j++] = '0';
+			buff[j++] = '0';
+
+		} else {
+
+			i = expire_char[k];
+			if(i < 0)
+				i += 256;
+
+			buff[j++] = i / 16 + '0';
+			buff[j++] = i % 16 + '0';
+
+		}
+
+	} // for
+	buff[j] = '\0';
+
+	BL_G(expire_date) = pemalloc(11, TRUE);
+	strncpy(&BL_G(expire_date)[0], &buff[6], 2);
+	BL_G(expire_date)[2] = '-';
+	strncpy(&BL_G(expire_date)[3], &buff[4], 2);
+	BL_G(expire_date)[5] = '-';
+	strncpy(&BL_G(expire_date)[6], &buff[0], 4);
+	BL_G(expire_date)[10] = '\0';
+#endif
+
+	if(atol(today_char) > atol(buff))
+		BL_G(expired) = TRUE;
+
 	return SUCCESS;
 }
 /* }}} */
@@ -117,6 +177,7 @@ PHP_MSHUTDOWN_FUNCTION(blenc)
 
 	zend_hash_destroy(php_bl_keys);
     pefree(php_bl_keys, TRUE);
+	// FREE_HASHTABLE(php_bl_keys);
 	zend_compile_file = zend_compile_file_old;
 	
 	return SUCCESS;
@@ -145,8 +206,14 @@ PHP_RINIT_FUNCTION(blenc)
 PHP_MINFO_FUNCTION(blenc)
 {
 	php_info_print_table_start();
-	php_info_print_table_header(2, "blenc support", "enabled");
-	php_info_print_table_row(2, "version", PHP_BLENC_VERSION);
+
+	if(BL_G(expired))
+		php_info_print_table_row(2, "Blenc support", "Expired");
+	else
+		php_info_print_table_row(2, "Blenc support", "Enabled");
+
+	php_info_print_table_row(2, "Blenc expire date", BL_G(expire_date));
+
 	php_info_print_table_end();
 
 	DISPLAY_INI_ENTRIES();
@@ -160,8 +227,17 @@ PHP_FUNCTION(blenc_encrypt) {
 	int output_len = 0, key_len = 0, data_len = 0, output_file_len = 0;
 	php_stream *stream;
 	zend_bool dup_key = FALSE;
-	
-	blenc_header header = {BLENC_IDENT, PHP_BLENC_VERSION};
+	char main_key[] = BLENC_PROTECT_MAIN_KEY;
+	char *main_hash[33];
+	b_byte *bfdata = NULL;
+	int bfdata_len = 0;
+	char *b64data = NULL;
+	int b64data_len = 0;
+	blenc_header header = {BLENC_IDENT, BLENC_VERSION};
+
+	memset(main_hash, '\0', sizeof(main_hash));
+
+	php_blenc_make_md5(main_hash, main_key, strlen(main_key));
 	
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss|s", &data, &data_len,
  				&output_file, &output_file_len,
@@ -175,20 +251,24 @@ PHP_FUNCTION(blenc_encrypt) {
 		dup_key = TRUE;
 	}
 
-	php_blenc_make_md5((char *)&header.md5, data, data_len TSRMLS_CC);
+	php_blenc_make_md5((char *)&header.md5, data, data_len);
 	
 	retval = php_blenc_encode(data, key, data_len, &output_len TSRMLS_CC);
 
+	bfdata = php_blenc_encode(key, main_hash, strlen(key), &bfdata_len TSRMLS_CC);
+	b64data = php_base64_encode(bfdata, bfdata_len, &b64data_len);
+
 	if((stream = php_stream_open_wrapper(output_file, "wb", ENFORCE_SAFE_MODE | REPORT_ERRORS, NULL))) {
+
 		_php_stream_write(stream, (void *)&header, (int)sizeof(blenc_header) TSRMLS_CC);
 		_php_stream_write(stream, retval, output_len TSRMLS_CC);
 		php_stream_close(stream);
 
-		RETVAL_STRING(key, dup_key);
+		/* RETVAL_STRING(key, dup_key); */
+		RETVAL_STRINGL(b64data, b64data_len, TRUE);
 	}
 
 	efree(retval);
-
 }
 
 static void php_blenc_make_md5(char *result, void *data, unsigned int data_len TSRMLS_DC)
@@ -232,8 +312,17 @@ static int php_blenc_load_keyhash(TSRMLS_D)
 	char *strtok_buf = NULL;
 	char *key = NULL;
 	char *keys = NULL;
+	char main_key[] = BLENC_PROTECT_MAIN_KEY;
+	char main_hash[33];
+	b_byte *buff = NULL;
+	int buff_len = 0;
+	char *bfdata = NULL;
+	int bfdata_len = 0;
 
 	keys = php_blenc_file_to_mem(BL_G(key_file) TSRMLS_CC);
+
+	memset(main_hash, '\0', sizeof(main_hash));
+	php_blenc_make_md5(main_hash, main_key, strlen(main_key));
 
 	if(keys) {
 		char *t = keys;
@@ -246,8 +335,10 @@ static int php_blenc_load_keyhash(TSRMLS_D)
 				continue;
 			}
 			
-			temp = pestrdup(key, TRUE);
-			
+			bfdata = php_base64_decode(key, strlen(key), &bfdata_len);
+			buff = php_blenc_decode(bfdata, main_hash, bfdata_len, &buff_len);
+
+			temp = pestrdup(buff, TRUE);
 			if(zend_hash_next_index_insert(php_bl_keys, &temp, sizeof(char *), NULL) == FAILURE) {
 				zend_error(E_WARNING, "Could not add a key to the keyhash!");
 			}
@@ -264,39 +355,39 @@ static int php_blenc_load_keyhash(TSRMLS_D)
 	
 }
 
+
 b_byte *php_blenc_encode(void *script, unsigned char *key, int in_len, int *out_len TSRMLS_DC)
 {
 	BLOWFISH_CTX *ctx = NULL;
 	unsigned long hi = 0, low = 0;
 	int i, pad_size = 0;
-	b_byte *retval = NULL;
 	b_byte *input = NULL;
 	
 	ctx = emalloc(sizeof(BLOWFISH_CTX));
-	
+
 	Blowfish_Init (ctx, (unsigned char *)key, strlen(key));
 
-	
+
 	if((pad_size = in_len % 8)) {
 		pad_size = 8 - pad_size;
 
-		retval = emalloc(in_len + pad_size);
-		input = estrdup(script);	
+		input = (b_byte*) estrdup(script);
 		input = erealloc(input, in_len + pad_size);
-		
+
 		memset(&input[in_len], '\0', pad_size);
-		
+
 	} else {
-		retval = emalloc(in_len);
-		input = script;
+
+		input = (b_byte*) estrdup(script);
 		pad_size = 0;
+
 	}
 	
 	hi = 0x0L;
 	low = 0x0L;
-		
+
 	for(i = 0; i < (in_len + pad_size); i+=8) {
-		
+
 		hi |= (unsigned int)((char *)input)[i] & 0xFF;
 		hi = hi << 8;
 		hi |= (unsigned int)((char *)input)[i+1] & 0xFF;
@@ -304,7 +395,7 @@ b_byte *php_blenc_encode(void *script, unsigned char *key, int in_len, int *out_
 		hi |= (unsigned int)((char *)input)[i+2] & 0xFF;
 		hi = hi << 8;
 		hi |= (unsigned int)((char *)input)[i+3] & 0xFF;
-		
+
 		low |= (unsigned int)((char *)input)[i+4] & 0xFF;
 		low = low << 8;
 		low |= (unsigned int)((char *)input)[i+5] & 0xFF;
@@ -315,25 +406,24 @@ b_byte *php_blenc_encode(void *script, unsigned char *key, int in_len, int *out_
 
 		Blowfish_Encrypt(ctx, &hi, &low);
 		
-		retval[i] = hi >> 24;
-		retval[i+1] = hi >> 16;
-		retval[i+2] = hi >> 8;
-		retval[i+3] = hi;
-		retval[i+4] = low >> 24;
-		retval[i+5] = low >> 16;
-		retval[i+6] = low >> 8;
-		retval[i+7] = low;
+		input[i] = hi >> 24;
+		input[i+1] = hi >> 16;
+		input[i+2] = hi >> 8;
+		input[i+3] = hi;
+		input[i+4] = low >> 24;
+		input[i+5] = low >> 16;
+		input[i+6] = low >> 8;
+		input[i+7] = low;
 		
 		hi = 0x0L;
 		low = 0x0L;
 	}
 	
-	*out_len = in_len+pad_size;
-	
-	efree(input);
+	*out_len = in_len + pad_size;
+
 	efree(ctx);
-	
-	return retval;
+
+	return input;
 }
 
 b_byte *php_blenc_decode(void *input, unsigned char *key, int in_len, int *out_len TSRMLS_DC)
@@ -346,17 +436,23 @@ b_byte *php_blenc_decode(void *input, unsigned char *key, int in_len, int *out_l
 	Blowfish_Init (&ctx, (unsigned char*)key, strlen(key));
     
 	if(in_len % 8) {
+
 		zend_error(E_WARNING, "Attempted to decode non-blenc encrytped file.");
 		return estrdup("");
+
 	} else {
-		retval = emalloc(in_len);
+
+		retval = emalloc(in_len + 1);
+
 	}
 	
+	memset(retval, '\0', sizeof(retval));
+
 	hi = 0x0L;
 	low = 0x0L;
-		
+
 	for(i = 0; i < in_len; i+=8) {
-		
+
 		hi |= (unsigned int)((char *)input)[i] & 0xFF;
 		hi = hi << 8;
 		hi |= (unsigned int)((char *)input)[i+1] & 0xFF;
@@ -364,7 +460,7 @@ b_byte *php_blenc_decode(void *input, unsigned char *key, int in_len, int *out_l
 		hi |= (unsigned int)((char *)input)[i+2] & 0xFF;
 		hi = hi << 8;
 		hi |= (unsigned int)((char *)input)[i+3] & 0xFF;
-		
+
 		low |= (unsigned int)((char *)input)[i+4] & 0xFF;
 		low = low << 8;
 		low |= (unsigned int)((char *)input)[i+5] & 0xFF;
@@ -372,9 +468,9 @@ b_byte *php_blenc_decode(void *input, unsigned char *key, int in_len, int *out_l
 		low |= (unsigned int)((char *)input)[i+6] & 0xFF;
 		low = low << 8;
 		low |= (unsigned int)((char *)input)[i+7] & 0xFF;
-		
+
 		Blowfish_Decrypt(&ctx, &hi, &low);
-		
+
 		retval[i] = hi >> 24;
 		retval[i+1] = hi >> 16;
 		retval[i+2] = hi >> 8;
@@ -383,12 +479,13 @@ b_byte *php_blenc_decode(void *input, unsigned char *key, int in_len, int *out_l
 		retval[i+5] = low >> 16;
 		retval[i+6] = low >> 8;
 		retval[i+7] = low;
-		
+
 		hi = 0x0L;
-		
 		low = 0x0L;
+
 	}
 	
+	retval[in_len] = '\0';
 	*out_len = strlen(retval);
 	
 	return retval;
@@ -420,123 +517,125 @@ static unsigned char *php_blenc_gen_key(TSRMLS_D)
 	return retval;
 }
 
-static size_t blenc_stream_reader(void *handle, char *buf, size_t len TSRMLS_DC)
-{
-	size_t bytes;
-	
-	if(BL_G(decoded)) {
-		
-		bytes = (BL_G(index) + len > BL_G(decoded_len)) ? BL_G(decoded_len) - BL_G(index) : len;
-		memcpy(buf, &BL_G(decoded)[BL_G(index)], bytes);
-		BL_G(index) += bytes;
-		return bytes;
-
-	}
-	
-	return 0;
-}
-
-static void blenc_stream_closer(void *handle TSRMLS_DC)
-{
-	old_stream_closer(handle TSRMLS_CC);
-	efree(BL_G(decoded));
-	BL_G(decoded) = NULL;
-	BL_G(decoded_len) = 0;
-	BL_G(index) = 0;
-	
-}
-
 zend_op_array *blenc_compile(zend_file_handle *file_handle, int type TSRMLS_DC) {
 
-	int i = 0;
+	int i = 0, res = 0;
 	size_t bytes;
+	php_stream *stream;
 	char *script = NULL;
+	b_byte *decoded = NULL;
+	unsigned int decoded_len = 0;
 	unsigned int index = 0;
 	unsigned int script_len = 0;
 	zend_op_array *retval = NULL;
-	
 	blenc_header *header;
-	
-	zend_stream_fixup(file_handle TSRMLS_CC);
-	
-	old_stream_reader = file_handle->handle.stream.reader;
-	old_stream_closer = file_handle->handle.stream.closer;
-	
-	file_handle->handle.stream.reader = blenc_stream_reader;
-	file_handle->handle.stream.closer = blenc_stream_closer;
-	
+	zval *code;
+	zend_bool validated = FALSE;
+	MAKE_STD_ZVAL(code);
+
+
+	/*
+	 * using php_stream instead zend internals
+	 */
+	if( (stream = php_stream_open_wrapper(file_handle->filename, "r+", ENFORCE_SAFE_MODE | REPORT_ERRORS, NULL)) == NULL) {
+
+		zend_error(E_NOTICE, "blenc_compile: unable to open stream, compiling with default compiler.");
+		return retval = zend_compile_file_old(file_handle, type TSRMLS_CC);
+
+	}
+
 	script = emalloc(BLENC_BUFSIZE);
-	
-	for(i = 2; (bytes = old_stream_reader(file_handle->handle.stream.handle,
-  					      &script[index],
-					      BLENC_BUFSIZE TSRMLS_CC)) > 0; i++)
-	{		
+	for(i = 2; (bytes = php_stream_read(stream, &script[index], BLENC_BUFSIZE TSRMLS_CC)) > 0; i++) {
+
 		script_len += bytes;
-		
 		if(bytes == BLENC_BUFSIZE) {
-			
+
 			script = erealloc(script, BLENC_BUFSIZE * i);
 			index += bytes;
+
 		}
-		
+
 	}
 
 	script_len += bytes;
-		
+
+	php_stream_close(stream);
+
+	if(!script_len) {
+
+		zend_error(E_NOTICE, "blenc_compile: unable to read stream, compiling with default compiler.");
+		return retval = zend_compile_file_old(file_handle, type TSRMLS_CC);
+
+	}
+
+	/*
+	 * check if it's a blenc script
+	 */
 	header = (blenc_header *)script;
-	
+
 	if(!strncmp(script, BLENC_IDENT, strlen(BLENC_IDENT))) {
+
 		char *md5;
 		char *encoded = &script[sizeof(blenc_header)];
 		char **key = NULL;
-		zend_bool validated = FALSE;
 		
+		if(BL_G(expired)) {
+
+			zend_error(E_ERROR, "blenc_compile: Module php_blenc was expired. Please buy a new license key or disable the module.");
+			return NULL;
+
+		}
+
 		for (zend_hash_internal_pointer_reset(php_bl_keys);
 			 zend_hash_get_current_data(php_bl_keys, (void **)&key) == SUCCESS;
 			 zend_hash_move_forward(php_bl_keys)) {
 
-			BL_G(decoded) = php_blenc_decode(encoded, *key, script_len - sizeof(blenc_header), &BL_G(decoded_len) TSRMLS_CC);
-			
+			decoded = php_blenc_decode(encoded, *key, script_len - sizeof(blenc_header), &decoded_len);
+
 			md5 = emalloc(33);
-			php_blenc_make_md5(md5, BL_G(decoded), BL_G(decoded_len) TSRMLS_CC);
+			php_blenc_make_md5(md5, decoded, decoded_len);
 
 			if(!strncmp(md5, header->md5, 32)) {
+
 				validated = TRUE;
 				efree(md5);
 				break;
+
 			}
 			
+			zend_error(E_WARNING, "blenc_compile: Validation of script '%s' failed. Script lenght: %d, decoded lenght: %d\n", script_len - sizeof(blenc_header), decoded_len);
+			zend_error(E_WARNING, "blenc_compile: Validation of script '%s' failed. BF KEY: %s, MD5_FILE: %s MD5_CALC: %s\n",
+									file_handle->filename, *key, header->md5, md5);
+
 			efree(md5);
 			md5 = NULL;
 		
-			efree(BL_G(decoded));
-			BL_G(decoded_len) = 0;
+			efree(decoded);
+			decoded_len = 0;
 			
 		}
-			
+
 		if(!validated) {	
 		
-			zend_error(E_ERROR, "Validation of script '%s' failed, cannot execute.", file_handle->filename);
-			efree(script);
+			zend_error(E_ERROR, "blenc_compile: Validation of script '%s' failed, cannot execute.", file_handle->filename);
 			return NULL;
+
 		}
-				
-	} else {
-		
-		BL_G(decoded) = script;
-		BL_G(decoded_len) = script_len;
-		
+
 	}
 
-	index = 0;
-	retval = zend_compile_file_old(file_handle, type TSRMLS_CC);
-	
-	if(BL_G(decoded) != script) {
-		efree(script);
+	if(validated && decoded != NULL) {
+
+		ZVAL_STRINGL(code, decoded, decoded_len, TRUE);
+		retval = zend_compile_string(code, file_handle->filename TSRMLS_CC);
+
+	} else {
+
+		retval = zend_compile_file_old(file_handle, type TSRMLS_CC);
+
 	}
 	
 	return retval;
-
 }
 
 void _php_blenc_pefree_wrapper(void **data)

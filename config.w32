@@ -1,8 +1,25 @@
 // $Id$
 // vim:ft=javascript
 
-ARG_ENABLE("blenc", "enable blenc support", "no");
+// If your extension references something external, use ARG_WITH
+// ARG_WITH("blenc", "for blenc support", "no");
+
+// Otherwise, use ARG_ENABLE
+// ARG_ENABLE("blenc", "enable blenc support", "no");
 
 if (PHP_BLENC != "no") {
 	EXTENSION("blenc", "blenc.c bf_algo.c");
 }
+
+
+AC_CHECK_FILE(blenc_protect.h, 
+[], 
+[
+	echo 
+	echo "--------------------------------------------------------------------"
+	echo "Make sure the file blenc_protect.h exists. You must edit & rename the"
+	echo "file blenc_protect.h.dist with your key and expiration date."
+	echo "--------------------------------------------------------------------"
+	echo 
+	AC_MSG_FAILURE("File blenc_protect.h not found")
+])

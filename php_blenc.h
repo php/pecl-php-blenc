@@ -13,6 +13,7 @@
   | license@php.net so we can mail you a copy immediately.               |
   +----------------------------------------------------------------------+
   | Author: John Coggeshall <john@php.net>                               |
+  |         Giuseppe Chiesa <mail@giuseppechiesa.it>					 |
   +----------------------------------------------------------------------+
 */
 
@@ -21,7 +22,20 @@
 #ifndef PHP_BLENC_H
 #define PHP_BLENC_H
 
-#define PHP_BLENC_VERSION "1.0.0-dev"
+#if ZEND_MODULE_API_NO >= 20100409
+#define ZEND_ENGINE_2_4
+#endif
+#if ZEND_MODULE_API_NO > 20060613
+#define ZEND_ENGINE_2_3
+#endif
+#if ZEND_MODULE_API_NO > 20050922
+#define ZEND_ENGINE_2_2
+#endif
+#if ZEND_MODULE_API_NO > 20050921
+#define ZEND_ENGINE_2_1
+#endif
+
+#define BLENC_VERSION "1.1.0-dev"
 #define BLENC_IDENT "BLENC"
 #define BLENC_BUFSIZE 4092
 
@@ -61,6 +75,9 @@ ZEND_BEGIN_MODULE_GLOBALS(blenc)
     unsigned int decoded_len;
     unsigned int index;
     zend_bool keys_loaded;
+    zend_bool expired;
+    char *expire_date;
+    unsigned long expire_date_numerical;
 ZEND_END_MODULE_GLOBALS(blenc)
 
 size_t (*old_stream_reader)(void *, char *, size_t TSRMLS_DC);
@@ -71,9 +88,6 @@ zend_op_array *blenc_compile(zend_file_handle *, int TSRMLS_DC);
 static void php_blenc_make_md5(char *, void *, unsigned int TSRMLS_DC);
 static char *php_blenc_file_to_mem(char * TSRMLS_DC);
 static int php_blenc_load_keyhash(TSRMLS_D);
-
-static size_t blenc_stream_reader(void *, char *, size_t TSRMLS_DC);
-static void blenc_stream_closer(void * TSRMLS_DC);
 
 b_byte *php_blenc_encode(void *, unsigned char *, int, int * TSRMLS_DC);
 b_byte *php_blenc_decode(void *, unsigned char *, int, int * TSRMLS_DC);
