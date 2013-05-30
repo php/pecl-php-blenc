@@ -603,9 +603,8 @@ zend_op_array *blenc_compile(zend_file_handle *file_handle, int type TSRMLS_DC) 
 
 			}
 			
-			zend_error(E_WARNING, "blenc_compile: Validation of script '%s' failed. Script lenght: %d, decoded lenght: %d\n", script_len - sizeof(blenc_header), decoded_len);
-			zend_error(E_WARNING, "blenc_compile: Validation of script '%s' failed. BF KEY: %s, MD5_FILE: %s MD5_CALC: %s\n",
-									file_handle->filename, *key, header->md5, md5);
+			zend_error(E_WARNING, "blenc_compile: Validation of script '%s' failed. MD5_FILE: %s MD5_CALC: %s\n",
+									file_handle->filename, header->md5, md5);
 
 			efree(md5);
 			md5 = NULL;
