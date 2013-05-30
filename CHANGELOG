@@ -1,0 +1,10 @@
+2013-05-30
+--
+Update package.xml to V2, added CHANGELOG and a simple script "blencode.php" to encode sources in tools/ directory. Tagged sources as 1.1.0b
+
+
+2013-05-29
+--
+Blenc now compile and works with PHP latest versions (tested with  PHP <= 5.4.6)
+Implemented support for date expiration of module and key encryption with hardcoded main key (see blenc_protect.h.dist for examples of usage)
+Some minor bug fixes

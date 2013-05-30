@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | PHP Version 5                                                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 1997-2004 The PHP Group                                |
+  | Copyright (c) 1997-2013 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.0 of the PHP license,       |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -13,7 +13,7 @@
   | license@php.net so we can mail you a copy immediately.               |
   +----------------------------------------------------------------------+
   | Author: John Coggeshall <john@php.net>                               |
-  |         Giuseppe Chiesa <mail@giuseppechiesa.it>					 |
+  |         Giuseppe Chiesa <gchiesa@php.net>							 |
   +----------------------------------------------------------------------+
 */
 
@@ -35,7 +35,7 @@
 #define ZEND_ENGINE_2_1
 #endif
 
-#define BLENC_VERSION "1.1.0-dev"
+#define BLENC_VERSION "1.1.0b"
 #define BLENC_IDENT "BLENC"
 #define BLENC_BUFSIZE 4092
 

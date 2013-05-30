@@ -1,59 +1,73 @@
-<?xml version="1.0" encoding="ISO-8859-1" ?>
-<!DOCTYPE package SYSTEM "../pear/package.dtd">
-<package>
+<?xml version="1.0" encoding="UTF-8"?>
+<package packagerversion="1.9.4" version="2.0" xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0
+http://pear.php.net/dtd/tasks-1.0.xsd
+http://pear.php.net/dtd/package-2.0
+http://pear.php.net/dtd/package-2.0.xsd">
  <name>blenc</name>
+ <channel>pecl.php.net</channel>
  <summary>Transparent PHP Script Encryption using Blowfish</summary>
- <maintainers>
-  <maintainer>
-   <user>john</user>
-   <name>John Coggeshall</name>
-   <email>john@php.net</email>
-   <role>lead</role>
-  </maintainer>
-  <maintainer>
-   <user>gchiesa</user>
-   <name>Giuseppe Chiesa</name>
-   <email>gchiesa@php.net</email>
-   <role>lead</role>
-  </maintainer>
- </maintainers>
- <description>
-BLENC is an extension which hooks into the Zend Engine, allowing for
+ <description>BLENC is an extension which hooks into the Zend Engine, allowing for
 transparent encryption and execution of PHP scripts using the blowfish
 algorithm. It is not designed for complete security (it is still
 possible to disassemble the script into op codes using a package such
 as XDebug), however it does keep people out of your code and make
 reverse engineering difficult.
+ 
  </description>
- <license>PHP</license>
- <release>
-  <state>beta</state>
-  <version>1.1.0b</version>
-  <date>2013-05-29</date>
-  <notes>
-    Upgraded to works with latest PHP version  
-  </notes>
-  <configureoptions>
-    <configureoption name="enable-blenc" default="autodetect" prompt="Enable BLENC?"/>
-  </configureoptions>
-  <filelist>
-   <file role="src" name="config.m4"/>
-   <file role="src" name="config.w32"/>
-   <file role="src" name="blenc.c"/>
-   <file role="src" name="php_blenc.h"/>
-   <file role="src" name="blenc_protect.h"/>
-   <file role="src" name="bf_algo.c"/>
-   <file role="src" name="bf_algo.h"/>
-   
-   <file role="doc" name="CREDITS"/>
-
-   <file role="test" name="tests/001.phpt"/>
-  </filelist>
-  <deps>
-   <dep type="php" rel="ge" version="4.3.0" />
-  </deps>
- </release>
+ <lead>
+  <name>John Coggeshall</name>
+  <user>john</user>
+  <email>john@php.net</email>
+  <active>yes</active>
+ </lead>
+ <lead>
+  <name>Giuseppe Chiesa</name>
+  <user>gchiesa</user>
+  <email>gchiesa@php.net</email>
+  <active>yes</active>
+ </lead>
+ <date>2013-05-30</date>
+ <time>16:18:09</time>
+ <version>
+  <release>1.1.0b</release>
+  <api>1.1.0b</api>
+ </version>
+ <stability>
+  <release>beta</release>
+  <api>beta</api>
+ </stability>
+ <license uri="http://www.php.net/license">PHP</license>
+ <notes>
+Upgraded to works with latest PHP version
+ </notes>
+ <contents>
+  <dir name="/">
+   <dir name="tests">
+    <file name="001.phpt" role="test" />
+   </dir> <!-- //tests -->
+   <file name="bf_algo.c" role="src" />
+   <file name="bf_algo.h" role="src" />
+   <file name="blenc.c" role="src" />
+   <file name="blenc_protect.h.dist" role="src" />
+   <file name="config.m4" role="src" />
+   <file name="config.w32" role="src" />
+   <file name="CREDITS" role="doc" />
+   <file name="php_blenc.h" role="src" />
+   <file name="tools/blencode.php" role="src" />
+  </dir> <!-- / -->
+ </contents>
+ <dependencies>
+  <required>
+   <php>
+    <min>4.3.0</min>
+   </php>
+   <pearinstaller>
+    <min>1.4.0b1</min>
+   </pearinstaller>
+  </required>
+ </dependencies>
+ <providesextension>blenc</providesextension>
+ <extsrcrelease>
+  <configureoption default="autodetect" name="enable-blenc" prompt="Enable BLENC?" />
+ </extsrcrelease>
 </package>
-<!--
-vim:et:ts=1:sw=1
--->
