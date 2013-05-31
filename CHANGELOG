@@ -1,3 +1,8 @@
+2013-05-31 
+--
+Renamed blenc_protect.h.dist to blenc_protect.h in order to permit automatic installation with "pecl install" command.
+
+
 2013-05-30
 --
 Update package.xml to V2, added CHANGELOG and a simple script "blencode.php" to encode sources in tools/ directory. Tagged sources as 1.1.0b

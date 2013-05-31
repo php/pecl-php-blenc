@@ -26,11 +26,11 @@ reverse engineering difficult.
   <email>gchiesa@php.net</email>
   <active>yes</active>
  </lead>
- <date>2013-05-30</date>
- <time>16:18:09</time>
+ <date>2013-05-31</date>
+ <time>11:22:00</time>
  <version>
-  <release>1.1.0b</release>
-  <api>1.1.0b</api>
+  <release>1.1.1b</release>
+  <api>1.1.1b</api>
  </version>
  <stability>
   <release>beta</release>
@@ -48,7 +48,7 @@ Upgraded to works with latest PHP version
    <file name="bf_algo.c" role="src" />
    <file name="bf_algo.h" role="src" />
    <file name="blenc.c" role="src" />
-   <file name="blenc_protect.h.dist" role="src" />
+   <file name="blenc_protect.h" role="src" />
    <file name="config.m4" role="src" />
    <file name="config.w32" role="src" />
    <file name="CREDITS" role="doc" />
