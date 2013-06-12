@@ -11,15 +11,3 @@ PHP_ARG_ENABLE(blenc, whether to enable blowfish script encryption,
 if test "$PHP_BLENC" != "no"; then
   PHP_NEW_EXTENSION(blenc, blenc.c bf_algo.c, $ext_shared)
 fi
-
-AC_CHECK_FILE(blenc_protect.h, 
-[], 
-[
-	echo 
-	echo "--------------------------------------------------------------------"
-	echo "Make sure the file blenc_protect.h exists. You must edit & rename the"
-	echo "file blenc_protect.h.dist with your key and expiration date."
-	echo "--------------------------------------------------------------------"
-	echo 
-	AC_MSG_FAILURE("File blenc_protect.h not found")
-])

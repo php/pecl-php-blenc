@@ -10,16 +10,3 @@
 if (PHP_BLENC != "no") {
 	EXTENSION("blenc", "blenc.c bf_algo.c");
 }
-
-
-AC_CHECK_FILE(blenc_protect.h, 
-[], 
-[
-	echo 
-	echo "--------------------------------------------------------------------"
-	echo "Make sure the file blenc_protect.h exists. You must edit & rename the"
-	echo "file blenc_protect.h.dist with your key and expiration date."
-	echo "--------------------------------------------------------------------"
-	echo 
-	AC_MSG_FAILURE("File blenc_protect.h not found")
-])
