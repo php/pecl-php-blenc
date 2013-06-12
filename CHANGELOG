@@ -1,3 +1,8 @@
+2013-06-12
+--
+Some fix on config.m4, new package.xml description, BLENC now display version in phpinfo.
+ 
+
 2013-05-31 
 --
 Renamed blenc_protect.h.dist to blenc_protect.h in order to permit automatic installation with "pecl install" command.

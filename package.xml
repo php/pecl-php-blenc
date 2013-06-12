@@ -5,14 +5,11 @@ http://pear.php.net/dtd/package-2.0
 http://pear.php.net/dtd/package-2.0.xsd">
  <name>blenc</name>
  <channel>pecl.php.net</channel>
- <summary>Transparent PHP Script Encryption using Blowfish</summary>
- <description>BLENC is an extension which hooks into the Zend Engine, allowing for
-transparent encryption and execution of PHP scripts using the blowfish
-algorithm. It is not designed for complete security (it is still
-possible to disassemble the script into op codes using a package such
-as XDebug), however it does keep people out of your code and make
-reverse engineering difficult.
- 
+ <summary>BLowfish ENCryption for PHP Scripts</summary>
+ <description>
+BLENC is an extension that permit to protect PHP source scripts with Blowfish Encription.
+BLENC hooks into the Zend Engine, allowing for transparent execution of PHP scripts previously encoded with BLENC.
+It is not designed for complete security (it is still possible to disassemble the script into op codes using a package such as XDebug), however it does keep people out of your code and make reverse engineering difficult.
  </description>
  <lead>
   <name>John Coggeshall</name>
@@ -26,11 +23,11 @@ reverse engineering difficult.
   <email>gchiesa@php.net</email>
   <active>yes</active>
  </lead>
- <date>2013-05-31</date>
- <time>11:22:00</time>
+ <date>2013-06-12</date>
+ <time>19:11:00</time>
  <version>
-  <release>1.1.1b</release>
-  <api>1.1.1b</api>
+  <release>1.1.2b</release>
+  <api>1.1.2b</api>
  </version>
  <stability>
   <release>beta</release>

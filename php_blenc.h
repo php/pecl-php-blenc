@@ -35,7 +35,7 @@
 #define ZEND_ENGINE_2_1
 #endif
 
-#define BLENC_VERSION "1.1.1b"
+#define BLENC_VERSION "1.1.2b"
 #define BLENC_IDENT "BLENC"
 #define BLENC_BUFSIZE 4092
 

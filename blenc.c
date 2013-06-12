@@ -212,6 +212,7 @@ PHP_MINFO_FUNCTION(blenc)
 	else
 		php_info_print_table_row(2, "Blenc support", "Enabled");
 
+	php_info_print_table_row(2, "Blenc version", BLENC_VERSION);
 	php_info_print_table_row(2, "Blenc expire date", BL_G(expire_date));
 
 	php_info_print_table_end();
