@@ -27,6 +27,10 @@
 #include "php_ini.h"
 #include "ext/standard/info.h"
 #include "ext/standard/md5.h"
+#include "ext/standard/base64.h"
+#ifdef PHP_WIN32
+# include "win32/time.h"
+#endif
 #include "php_blenc.h"
 #include "blenc_protect.h"
 #include "bf_algo.h"
