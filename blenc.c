@@ -68,7 +68,7 @@ zend_module_entry blenc_module_entry = {
 	NULL, 
 	PHP_MINFO(blenc),
 #if ZEND_MODULE_API_NO >= 20010901
-	BLENC_VERSION, /* Replace with version number for your extension */
+	PHP_BLENC_VERSION, /* Replace with version number for your extension */
 #endif
 	STANDARD_MODULE_PROPERTIES
 };
@@ -116,7 +116,7 @@ PHP_MINIT_FUNCTION(blenc)
 	zend_compile_file_old = zend_compile_file;
 	zend_compile_file = blenc_compile;
 	
-	REGISTER_STRING_CONSTANT("BLENC_EXT_VERSION", BLENC_VERSION, CONST_CS | CONST_PERSISTENT);
+	REGISTER_STRING_CONSTANT("BLENC_EXT_VERSION", PHP_BLENC_VERSION, CONST_CS | CONST_PERSISTENT);
 
 	/*
 	 * check expire extension
@@ -216,7 +216,7 @@ PHP_MINFO_FUNCTION(blenc)
 	else
 		php_info_print_table_row(2, "Blenc support", "Enabled");
 
-	php_info_print_table_row(2, "Blenc version", BLENC_VERSION);
+	php_info_print_table_row(2, "Blenc version", PHP_BLENC_VERSION);
 	php_info_print_table_row(2, "Blenc expire date", BL_G(expire_date));
 
 	php_info_print_table_end();
@@ -238,7 +238,7 @@ PHP_FUNCTION(blenc_encrypt) {
 	int bfdata_len = 0;
 	char *b64data = NULL;
 	int b64data_len = 0;
-	blenc_header header = {BLENC_IDENT, BLENC_VERSION};
+	blenc_header header = {BLENC_IDENT, PHP_BLENC_VERSION};
 
 	memset(main_hash, '\0', sizeof(main_hash));
 
