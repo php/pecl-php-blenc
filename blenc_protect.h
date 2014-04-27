@@ -57,6 +57,6 @@
  *
  *							ex. 30-04-2013 -> { '\x20', '\x13', '\x04', '\x30' }
  */
-#define BLENC_PROTECT_EXPIRE 	{ '\x20', '\x21', '\x02', '\x12' } 
+#define BLENC_PROTECT_EXPIRE 	{ '\x99', '\x99', '\x99', '\x99' }
 
 #endif

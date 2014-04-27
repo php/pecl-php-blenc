@@ -542,7 +542,7 @@ zend_op_array *blenc_compile(zend_file_handle *file_handle, int type TSRMLS_DC) 
 	/*
 	 * using php_stream instead zend internals
 	 */
-	if( (stream = php_stream_open_wrapper(file_handle->filename, "r+", ENFORCE_SAFE_MODE | REPORT_ERRORS, NULL)) == NULL) {
+	if( (stream = php_stream_open_wrapper(file_handle->filename, "r", ENFORCE_SAFE_MODE | REPORT_ERRORS, NULL)) == NULL) {
 
 		zend_error(E_NOTICE, "blenc_compile: unable to open stream, compiling with default compiler.");
 		return retval = zend_compile_file_old(file_handle, type TSRMLS_CC);

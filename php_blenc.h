@@ -35,7 +35,7 @@
 #define ZEND_ENGINE_2_1
 #endif
 
-#define PHP_BLENC_VERSION "1.1.2b"
+#define PHP_BLENC_VERSION "1.1.4b"
 #define BLENC_IDENT "BLENC"
 #define BLENC_BUFSIZE 4092
 
