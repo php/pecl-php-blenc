@@ -49,6 +49,8 @@ Upgraded to works with latest PHP version
    <file name="config.m4" role="src" />
    <file name="config.w32" role="src" />
    <file name="CREDITS" role="doc" />
+   <file name="LICENSE" role="doc" />
+   <file name="TODO" role="doc" />
    <file name="php_blenc.h" role="src" />
    <file name="tools/blencode.php" role="src" />
   </dir> <!-- / -->
