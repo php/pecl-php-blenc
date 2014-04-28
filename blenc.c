@@ -550,7 +550,7 @@ zend_op_array *blenc_compile(zend_file_handle *file_handle, int type TSRMLS_DC) 
 	}
 
 	script = emalloc(BLENC_BUFSIZE);
-	for(i = 2; (bytes = php_stream_read(stream, &script[index], BLENC_BUFSIZE TSRMLS_CC)) > 0; i++) {
+	for(i = 2; (bytes = php_stream_read(stream, &script[index], BLENC_BUFSIZE)) > 0; i++) {
 
 		script_len += bytes;
 		if(bytes == BLENC_BUFSIZE) {
